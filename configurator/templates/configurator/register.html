@@ -1,0 +1,21 @@
+{% extends 'configurator/base.html' %}
+{% block content %}
+<div class="max-w-md mx-auto bg-cyber-card border border-gray-800 rounded-xl p-6 mt-12">
+    <h2 class="text-xl font-bold mb-6 font-mono text-center text-white">რეგისტრაცია</h2>
+    <form method="POST" class="space-y-4">
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="flex flex-col gap-1">
+                <label class="text-xs text-gray-400 font-mono">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<span class="text-[10px] text-gray-500">{{ field.help_text }}</span>{% endif %}
+            </div>
+        {% endfor %}
+        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg text-sm transition mt-2">ანგარიშის შექმნა</button>
+    </form>
+    <p class="text-xs text-center text-gray-500 mt-4 font-mono">უკვე გაქვს ანგარიში? <a href="{% url 'login' %}" class="text-blue-400 hover:underline">შედი</a></p>
+</div>
+<script>
+    document.querySelectorAll('input').forEach(i => i.className = "w-full bg-cyber-dark border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-blue-500");
+</script>
+{% endblock %}

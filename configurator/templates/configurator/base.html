@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechForge // PC Configurator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: { dark: '#0B0F19', card: '#161F30', text: '#E5E7EB' }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-cyber-dark text-cyber-text min-h-screen font-sans overflow-x-hidden">
+
+    <nav class="border-b border-gray-800 bg-[#111827]/80 backdrop-blur px-6 py-4 flex justify-between items-center sticky top-0 z-40">
+        <a href="{% url 'index' %}" class="flex items-center gap-2 font-mono text-xl font-bold tracking-wider text-white logo-glow">
+            <span class="w-3 h-3 bg-blue-500 rounded-sm shadow-[0_0_10px_#3b82f6]"></span> TECH<span class="text-blue-500">FORGE</span>
+        </a>
+        <div class="flex items-center gap-4">
+            <button type="button" onclick="toggleCyberSlider()" class="text-xs font-mono bg-blue-600/10 hover:bg-blue-600 border border-blue-500/30 hover:border-blue-500 text-blue-400 hover:text-white px-4 py-2 rounded transition-all duration-300">
+                ჩემი სეტაპი 🛠️
+            </button>
+
+            {% if user.is_authenticated %}
+                <span class="text-sm font-mono text-gray-400">ოპერატორი: <span class="text-emerald-400 font-bold">{{ user.username }}</span></span>
+                <a href="{% url 'logout' %}" class="text-xs bg-red-950/40 hover:bg-red-900/60 border border-red-800 text-red-400 px-3 py-1.5 rounded transition">გამოსვლა</a>
+            {% else %}
+                <a href="{% url 'login' %}" class="text-sm text-gray-300 hover:text-white">შესვლა</a>
+                <a href="{% url 'register' %}" class="text-xs bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded font-bold transition">რეგისტრაცია</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    {% if messages %}
+    <div id="django-messages" class="max-w-7xl mx-auto px-6 mt-4">
+        {% for message in messages %}
+            <div class="p-3 rounded-lg text-sm font-mono {% if message.tags == 'success' %}bg-emerald-950/50 border border-emerald-500 text-emerald-400{% else %}bg-red-950/50 border border-red-500 text-red-400{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <main class="max-w-7xl mx-auto p-6">
+        {% block content %}{% endblock %}
+    </main>
+
+    <div id="cyber-slider" class="fixed inset-y-0 right-0 w-96 bg-[#111827] border-l border-gray-800 z-50 transform translate-x-full transition-transform duration-300 ease-in-out shadow-[-10px_0_30px_rgba(0,0,0,0.6)] flex flex-col">
+        <div class="p-6 border-b border-gray-800 flex justify-between items-center bg-[#161F30]/50">
+            <h3 class="font-mono text-sm font-bold text-white tracking-widest uppercase flex items-center gap-2">
+                <span class="w-2 h-2 bg-emerald-400 rounded-full"></span> კონფიგურაცია
+            </h3>
+            <button onclick="toggleCyberSlider()" class="text-gray-400 hover:text-white font-mono text-xl transition-colors">&times;</button>
+        </div>
+        <div id="slider-dynamic-content" class="p-6 flex-1 overflow-y-auto font-mono text-sm space-y-4">
+            <p class="text-gray-500 text-xs">აქ ჩაჯდება შენი მიმდინარე კალათის სრული ინფორმაცია...</p>
+            {% block slider_content %}{% endblock %}
+        </div>
+    </div>
+    <div id="slider-backdrop" class="fixed inset-0 bg-black/60 opacity-0 pointer-events-none transition-opacity duration-300 z-45" onclick="toggleCyberSlider()"></div>
+
+
+<style>
+    /* 🛡️ ატომური ბლოკი - სიკვდილი ყოველგვარ უნებლიე ანიმაციას და ფეიდ-ციმციმს! */
+    * {
+        animation: none !important;
+    }
+    
+    /* ღილაკზე დაჭერისას ბლოკავს Tailwind-ის გაფერმკრთალებას, ტოვებს მხოლოდ მცირე კლიკ-ეფექტს */
+    button:active, .btn:active, a:active, input[type="submit"]:active {
+        opacity: 1 !important;
+        filter: none !important;
+        transform: scale(0.97) !important;
+    }
+
+    /* კიბერპანკ ჰოვერები - სუფთა, მყისიერი და უსაფრთხო */
+    .card, .component-item {
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease !important;
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        will-change: transform, box-shadow;
+    }
+    
+    .card:hover, .component-item:hover {
+        transform: translateY(-4px) !important;
+        border-color: rgba(59, 130, 246, 0.4) !important;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4), 0 0 12px rgba(59, 130, 246, 0.15) !important;
+    }
+
+    .logo-glow:hover {
+        text-shadow: 0 0 10px rgba(59, 130, 246, 0.6);
+    }
+</style>
+
+<script>
+function toggleCyberSlider() {
+    const slider = document.getElementById('cyber-slider');
+    const backdrop = document.getElementById('slider-backdrop');
+    slider.classList.toggle('translate-x-full');
+    backdrop.classList.toggle('opacity-0');
+    backdrop.classList.toggle('pointer-events-none');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    შემოწმებადუბლიკატების();
+});
+
+document.addEventListener('submit', function(e) {
+    if (e.target.tagName === 'FORM') {
+        e.preventDefault();
+        გაგზავნაფონურად(e.target.action || window.location.href, new FormData(e.target), 'POST');
+    }
+});
+
+document.addEventListener('click', function(e) {
+    let ლინკი = e.target.closest('a');
+    if (ლინკი) {
+        let href = ლინკი.getAttribute('href') || '';
+        if (href.includes('add') || href.includes('delete') || href.includes('remove') || href.includes('select')) {
+            e.preventDefault();
+            გაგზავნაფონურად(ლინკი.href, null, 'GET');
+        }
+    }
+});
+
+function გაგზავნაფონურად(url, formData, method) {
+    let options = { method: method, headers: {'X-Requested-With': 'XMLHttpRequest'} };
+    if (formData) options.body = formData;
+
+    fetch(url, options)
+    .then(res => res.text())
+    .then(html => {
+        let parser = new DOMParser();
+        let doc = parser.parseFromString(html, 'text/html');
+        
+        let ძველიMain = document.querySelector('main');
+        let ახალიMain = doc.querySelector('main');
+        if (ძველიMain && ახალიMain) {
+            ძველიMain.innerHTML = ახალიMain.innerHTML;
+        }
+
+        let ძველიMessages = document.getElementById('django-messages');
+        let ახალიMessages = doc.getElementById('django-messages');
+        if (ძველიMessages && ახალიMessages) {
+            ძველიMessages.innerHTML = ახალიMessages.innerHTML;
+        }
+        
+        // სირურგიულად ვაახლებთ მხოლოდ სლაიდერის შიგთავსს
+        let ძველიSliderContent = document.getElementById('slider-dynamic-content');
+        let ახალიSliderContent = doc.getElementById('slider-dynamic-content');
+        if (ძველიSliderContent && ახალიSliderContent) {
+            ძველიSliderContent.innerHTML = ახალიSliderContent.innerHTML;
+        }
+
+        შემოწმებადუბლიკატების();
+    });
+}
+
+function შემოწმებადუბლიკატების() {
+    let აქვს_cpu = false;
+    let აქვს_gpu = false;
+
+    document.querySelectorAll('main tr, main .item, main div, main li, main .card').forEach(el => {
+        let txt = el.innerText.toLowerCase();
+        let არის_წაშლა = txt.includes('წაშლა') || txt.includes('remove') || txt.includes('delete');
+        if (არის_წაშლა && (txt.includes('cpu') || txt.includes('პროცესორი'))) აქვს_cpu = true;
+        if (არის_წაშლა && (txt.includes('gpu') || txt.includes('ვიდეობარათი') || txt.includes('გრაფიკა'))) აქვს_gpu = true;
+    });
+
+    document.querySelectorAll('main form, main .card, main tr, main .component-item, main button, main .btn, main a').forEach(el => {
+        let txt = el.innerText.toLowerCase();
+        let btn = el.tagName === 'BUTTON' || el.tagName === 'A' || el.classList.contains('btn') ? el : el.querySelector('button, .btn, input[type="submit"]');
+        if (!btn) return;
+
+        let არის_დამატება = txt.includes('დამატება') || txt.includes('არჩევა') || txt.includes('add') || txt.includes('select');
+        let არის_წაშლა = txt.includes('წაშლა') || txt.includes('remove') || txt.includes('delete');
+
+        if (აქვს_cpu && (txt.includes('cpu') || txt.includes('პროცესორი')) && არის_დამატება && !არის_წაშლა) გათიშვაღილაკის(btn);
+        if (აქვს_gpu && (txt.includes('gpu') || txt.includes('ვიდეობარათი')) && არის_დამატება && !არის_წაშლა) გათიშვაღილაკის(btn);
+    });
+}
+
+function გათიშვაღილაკის(el) {
+    if (el.tagName === 'A') {
+        el.style.pointerEvents = 'none';
+    } else {
+        el.disabled = true;
+    }
+    el.style.opacity = '0.4';
+    el.style.cursor = 'not-allowed';
+    if (el.innerText.includes('დამატება') || el.innerText.includes('Add') || el.innerText.includes('არჩევა')) {
+        el.innerText = 'უკვე არჩეულია';
+    }
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,228 @@
+{% extends 'configurator/base.html' %}
+{% block content %}
+
+<style>
+body {
+    background-color: #0f172a;
+    color: #f8fafc;
+    animation: fadeInPage 0.5s ease-in-out;
+}
+
+@keyframes fadeInPage {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card, .component-item {
+    transition: all 0.25s ease;
+}
+
+.card:hover, .component-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.2);
+}
+
+button, .btn {
+    transition: all 0.2s ease;
+}
+
+button:hover, .btn:hover {
+    transform: scale(1.02);
+    opacity: 0.95;
+}
+</style>
+
+
+
+
+
+
+
+
+
+
+<div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+    <div class="absolute top-12 left-10 w-80 h-80 bg-blue-600/10 rounded-full blur-[120px] animate-pulse" style="animation-duration: 7s;"></div>
+    <div class="absolute bottom-24 right-12 w-96 h-96 bg-purple-600/10 rounded-full blur-[140px] animate-pulse" style="animation-duration: 10s;"></div>
+    <div class="absolute top-1/3 right-1/4 w-80 h-80 bg-emerald-500/5 rounded-full blur-[100px] animate-pulse" style="animation-duration: 13s;"></div>
+</div>
+
+<div class="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    <div class="lg:col-span-8 space-y-6">
+        <div class="bg-cyber-card/80 backdrop-blur-md border border-gray-800 rounded-2xl p-6 shadow-2xl">
+            <form method="GET" action="{% url 'index' %}" class="space-y-4">
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <input type="text" name="search" placeholder="ჩაწერე მოდელი..." value="{{ search_query }}" class="flex-1 bg-cyber-dark border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-blue-500 font-mono">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-2.5 rounded-xl text-sm transition font-mono shadow-lg shadow-blue-900/30">ძებნა</button>
+                </div>
+                <div class="flex gap-2 overflow-x-auto pb-2">
+                    <a href="?search={{ search_query }}" class="px-4 py-2 rounded-xl text-xs font-mono border {% if not selected_category %}bg-blue-600/20 border-blue-500 text-blue-400{% else %}bg-cyber-dark border-gray-800 text-gray-400{% endif %}">⚡ ყველაფერი</a>
+                    {% for cat_code, cat_name in categories %}
+                    <a href="?category={{ cat_code }}&search={{ search_query }}" class="px-4 py-2 rounded-xl text-xs font-mono border {% if selected_category == cat_code %}bg-blue-600/20 border-blue-500 text-blue-400{% else %}bg-cyber-dark border-gray-800 text-gray-400{% endif %}">{{ cat_name }}</a>
+                    {% endfor %}
+                </div>
+            </form>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {% for comp in components %}
+            <div class="component-card border rounded-2xl p-5 bg-[#111827]/90 backdrop-blur-sm shadow-xl {% if comp in selected_components %}border-blue-500 bg-gradient-to-br from-blue-950/30 to-cyber-card shadow-blue-950/50{% else %}border-gray-800/80{% endif %}">
+                <div class="flex justify-between items-start mb-3">
+                    <span class="text-[10px] uppercase font-bold font-mono px-2 py-1 rounded bg-gray-800 text-gray-300">{{ comp.get_category_display }}</span>
+                    <span class="text-base font-black text-emerald-400 font-mono">${{ comp.price }}</span>
+                </div>
+                <h3 class="font-bold text-white text-sm"><span class="text-gray-400 font-normal text-xs block font-mono">{{ comp.brand }}</span>{{ comp.name }}</h3>
+                <div class="mt-5 pt-3 border-t border-gray-800/60 flex justify-between items-center text-xs text-gray-400">
+                    <span class="font-mono">⚡ {{ comp.wattage }} W</span>
+                    <a href="{% url 'toggle_component' comp.id %}" class="px-4 py-2 rounded-xl text-xs font-bold font-mono transition-all duration-200 {% if comp in selected_components %}bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500/20{% else %}bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-900/20{% endif %}">
+                        {% if comp in selected_components %}მოხსნა ×{% else %}დამატება +{% endif %}
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="bg-cyber-card/80 backdrop-blur-md border border-gray-800 rounded-2xl p-6 shadow-2xl">
+            <h2 class="text-sm font-bold font-mono text-white mb-4">🌐 საჯარო კონფიგურაციები</h2>
+            <div class="space-y-4">
+                {% for build in all_builds %}
+                <div class="bg-cyber-dark/60 border border-gray-800 rounded-xl p-4 flex justify-between items-center transition hover:border-gray-700">
+                    <div>
+                        <h3 class="font-bold text-white text-sm">{{ build.title }} <span class="text-xs text-blue-400">@{{ build.creator.username }}</span></h3>
+                        <div class="flex flex-wrap gap-1 mt-1">
+                            {% for c in build.components.all %}
+                            <span class="text-[9px] bg-gray-900 text-gray-400 px-2 py-0.5 rounded font-mono">{{ c.name }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-gray-500 text-xs font-mono text-center py-4">ბილდები ჯერ არ არის ატვირთული.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="lg:col-span-4 lg:sticky lg:top-24">
+        <div class="bg-gradient-to-b from-cyber-card/90 to-[#0F1524]/95 backdrop-blur-md border border-gray-800 rounded-2xl p-6 space-y-5 shadow-2xl transition-all duration-500 {% if selected_components %}animate-rgb-case{% endif %}">
+            <div class="relative w-full h-44 rounded-xl overflow-hidden border border-gray-800 bg-gray-950 shadow-inner">
+                <img src="{{ build_image }}" alt="PC" class="w-full h-full object-cover opacity-80 transition-all duration-700 transform hover:scale-105">
+                {% if selected_components %}
+                <div class="absolute inset-0 bg-gradient-to-t from-[#0F1524] via-transparent to-transparent opacity-60"></div>
+                {% endif %}
+            </div>
+
+            {% if selected_components %}
+            <div class="bg-gray-900/80 border border-gray-800/80 rounded-xl p-4 space-y-2 text-xs font-mono">
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-400">🔥 სისტემის რეიტინგი:</span>
+                    <span class="text-emerald-400 font-black text-sm">{{ build_score }}/100</span>
+                </div>
+                <div class="w-full bg-gray-800 h-2 rounded-full overflow-hidden">
+                    <div class="bg-gradient-to-r from-blue-500 via-purple-500 to-emerald-400 h-full transition-all duration-500" style="width: {{ build_score }}%;"></div>
+                </div>
+                <div class="pt-1 flex justify-between items-center text-[11px]">
+                    <span class="text-gray-500">კლასი (Tier):</span>
+                    <span class="text-blue-400 font-bold">{{ build_tier }}</span>
+                </div>
+            </div>
+            {% endif %}
+
+            <h2 class="text-base font-bold text-white border-b border-gray-800 pb-3 font-mono flex items-center gap-2">
+                🛠️ შენი Setup 
+                {% if selected_components %}
+                <span class="flex h-2 w-2 relative">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                {% endif %}
+            </h2>
+
+            {% if compatibility_error %}
+            <div class="bg-red-900/30 border border-red-500/60 text-red-200 text-xs rounded-xl p-3.5 font-mono shadow-lg shadow-red-950/50 backdrop-blur-sm animate-pulse">
+                {{ compatibility_error }}
+            </div>
+            {% endif %}
+
+            {% if warning_message %}
+            <div class="bg-red-950/40 border border-red-500/40 text-red-400 text-xs rounded-xl p-3 font-mono">{{ warning_message }}</div>
+            {% endif %}
+
+            {% if bottleneck_message %}
+            <div class="bg-amber-950/40 border border-amber-500/40 text-amber-400 text-xs rounded-xl p-3 font-mono animate-pulse">
+                {{ bottleneck_message }}
+            </div>
+            {% endif %}
+
+            {% if not selected_components %}
+            <p class="text-gray-500 text-xs font-mono text-center py-8">კონფიგურატორი ცარიელია.<br><span class="text-[10px] text-gray-600 block mt-1">დაამატე ნაწილები სიიდან</span></p>
+            {% else %}
+            <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                {% for c in selected_components %}
+                <div class="bg-cyber-dark/80 border border-gray-800/80 rounded-xl p-3 flex justify-between items-center text-xs transition hover:border-gray-700">
+                    <div>
+                        <span class="text-[9px] text-blue-500 font-mono block uppercase tracking-wider">[{{ c.category }}]</span>
+                        <span class="text-gray-200 font-medium">{{ c.brand }} {{ c.name }}</span>
+                    </div>
+                    <a href="{% url 'toggle_component' c.id %}" class="text-gray-500 hover:text-red-400 text-lg transition-colors px-1">×</a>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="pt-3 border-t border-gray-800 text-xs font-mono text-gray-400 space-y-2.5">
+                <div class="flex justify-between"><span>⚡ ჯამური მუხტი:</span><span class="text-white font-bold">{{ total_wattage }} W</span></div>
+                <div class="flex justify-between text-sm pt-1"><span class="text-gray-300">ფასი:</span><span class="text-emerald-400 font-black text-base tracking-tight">${{ total_price }}</span></div>
+            </div>
+
+            {% if fps_data %}
+            <div class="pt-4 border-t border-gray-800/80 space-y-3">
+                <h4 class="text-xs font-bold text-blue-400 font-mono flex items-center gap-1">📊 სავარაუდო Gaming FPS:</h4>
+                <div class="grid grid-cols-1 gap-2 text-xs font-mono">
+                    <div class="bg-gray-900/40 border border-gray-800/60 rounded-xl p-2.5 flex justify-between px-3 hover:bg-gray-900/70 transition">
+                        <span class="text-gray-400">🔫 Counter-Strike 2:</span>
+                        <span class="text-emerald-400 font-bold tracking-wide">{{ fps_data.cs2 }}</span>
+                    </div>
+                    <div class="bg-gray-900/40 border border-gray-800/60 rounded-xl p-2.5 flex justify-between px-3 hover:bg-gray-900/70 transition">
+                        <span class="text-purple-400">🌆 Cyberpunk 2077:</span>
+                        <span class="text-emerald-400 font-bold tracking-wide">{{ fps_data.cyberpunk }}</span>
+                    </div>
+                    <div class="bg-gray-900/40 border border-gray-800/60 rounded-xl p-2.5 flex justify-between px-3 hover:bg-gray-900/70 transition">
+                        <span class="text-amber-400">🚗 GTA V:</span>
+                        <span class="text-emerald-400 font-bold tracking-wide">{{ fps_data.gta5 }}</span>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="pt-4 border-t border-gray-800/60 text-[11px] text-gray-500 font-mono text-center">
+                💡 აირჩიე CPU და GPU თამაშების ტესტისთვის
+            </div>
+            {% endif %}
+
+            {% if user.is_authenticated %}
+            <form method="POST" action="{% url 'save_build' %}" class="space-y-2 pt-2">
+                {% csrf_token %}
+                <input type="text" name="title" placeholder="ბილდის სახელი..." required class="w-full bg-cyber-dark border border-gray-700 rounded-xl px-3 py-2.5 text-xs text-gray-200 focus:outline-none focus:border-blue-600 font-mono transition">
+                {% if compatibility_error %}
+                <button type="button" disabled class="w-full bg-gray-800 text-gray-500 py-3 rounded-xl font-bold font-mono text-xs uppercase cursor-not-allowed border border-gray-700/50">❌ შეცდომა ბილდში</button>
+                {% else %}
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-xl font-bold font-mono text-xs uppercase shadow-lg shadow-emerald-950/20 transition duration-200">💾 შენახვა</button>
+                {% endif %}
+            </form>
+            {% else %}
+            <div class="text-xs text-gray-400 font-mono text-center pt-2 bg-gray-900/30 border border-gray-800 rounded-xl py-3">ბილდის შესანახად გაიარეთ <a href="{% url 'login' %}" class="text-blue-400 underline hover:text-blue-300">ავტორიზაცია</a>.</div>
+            {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+
+
